@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+models/*.pkl
+credentials.json
+models/gmail_token.json

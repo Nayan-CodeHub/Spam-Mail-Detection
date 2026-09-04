@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Inbox | Spam Mail Detector</title>
+    <style>
+        :root { --ink: #17231f; --muted: #6c7973; --line: #dce5de; --green: #1d6b4d; --mint: #e3f1e8; --coral: #fff0eb; --coral-ink: #a33e2c; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); font-family: Manrope, sans-serif; background: linear-gradient(135deg, #eef5ed, #dcebe1); }
+        main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 54px; }
+        header { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+        h1 { margin: 5px 0 0; font-size: clamp(28px, 5vw, 48px); letter-spacing: -.05em; }
+        .eyebrow { color: var(--green); font: 11px monospace; letter-spacing: .08em; text-transform: uppercase; }
+        a { color: var(--green); font-size: 13px; font-weight: 700; }
+        .notice { padding: 16px; border: 1px solid #f0c2b4; border-radius: 12px; color: var(--coral-ink); background: var(--coral); }
+        .mail-list { display: grid; gap: 12px; }
+        .mail { padding: 20px; border: 1px solid rgba(255,255,255,.8); border-radius: 14px; background: rgba(255,255,255,.9); box-shadow: 0 12px 30px rgba(33, 61, 46, .08); }
+        .mail.spam { border-left: 5px solid var(--coral-ink); }
+        .mail.ham { border-left: 5px solid var(--green); }
+        .mail-top { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+        .subject { margin: 0; font-size: 16px; }
+        .sender, .date, .preview { color: var(--muted); font-size: 12px; }
+        .sender { margin-top: 6px; }
+        .date { white-space: nowrap; }
+        .preview { margin: 14px 0 0; line-height: 1.6; }
+        .badge { display: inline-block; margin-top: 15px; padding: 6px 8px; border-radius: 7px; color: var(--green); background: var(--mint); font: 11px monospace; font-weight: 700; }
+        .spam .badge { color: var(--coral-ink); background: var(--coral); }
+        @media (max-width: 600px) { main { padding-top: 22px; } header { align-items: start; flex-direction: column; } .mail-top { flex-direction: column; gap: 8px; } }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <div><span class="eyebrow">Read-only Gmail scan</span><h1>Latest inbox messages</h1></div>
+        <a href="{{ url_for('index') }}">Back to detector</a>
+    </header>
+    {% if error %}<div class="notice">{{ error }}</div>{% endif %}
+    <section class="mail-list">
+        {% for message in messages %}
+            <article class="mail {{ message.result|lower }}">
+                <div class="mail-top">
+                    <div><h2 class="subject">{{ message.subject }}</h2><div class="sender">{{ message.sender }}</div></div>
+                    <div class="date">{{ message.date }}</div>
+                </div>
+                <p class="preview">{{ message.body[:280] }}{% if message.body|length > 280 %}...{% endif %}</p>
+                <span class="badge">{{ message.result }} / {{ "%.1f"|format(message.confidence) }}% confidence</span>
+            </article>
+        {% else %}
+            {% if not error %}<div class="notice">No inbox messages were returned.</div>{% endif %}
+        {% endfor %}
+    </section>
+</main>
+</body>
+</html>

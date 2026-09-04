@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Gmail | Spam Mail Detector</title>
+    <style>
+        body { min-height: 100vh; display: grid; place-items: center; margin: 0; color: #17231f; background: #e6f0e7; font-family: Manrope, sans-serif; }
+        main { width: min(560px, calc(100% - 32px)); padding: 32px; border: 1px solid #d6e4d8; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(33, 61, 46, .13); }
+        h1 { margin: 0 0 12px; font-size: 28px; }
+        p, li { color: #66746c; line-height: 1.6; font-size: 14px; }
+        code { padding: 3px 6px; border-radius: 5px; background: #edf5ed; color: #1d6b4d; }
+        a { display: inline-block; margin-top: 14px; color: #1d6b4d; font-weight: 700; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Connect Gmail</h1>
+    <p>To connect your inbox, add a Google OAuth web-application file named <code>credentials.json</code> to the project root.</p>
+    <ol>
+        <li>Open Google Cloud Console and create or select a project.</li>
+        <li>Enable the Gmail API.</li>
+        <li>Create OAuth credentials for a Web application.</li>
+        <li>Add <code>http://127.0.0.1:5000/oauth2callback</code> as an authorized redirect URI.</li>
+        <li>Download the JSON file and rename it to <code>credentials.json</code>.</li>
+        <li>Place it beside <code>requirements.txt</code>, install dependencies, and click Connect Gmail again.</li>
+    </ol>
+    <p>The app requests read-only Gmail access. It never sends, deletes, or changes messages.</p>
+    <a href="{{ url_for('index') }}">Return to detector</a>
+</main>
+</body>
+</html>

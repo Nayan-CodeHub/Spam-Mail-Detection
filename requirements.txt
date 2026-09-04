@@ -1,0 +1,8 @@
+pandas
+scikit-learn
+flask
+joblib
+matplotlib
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
