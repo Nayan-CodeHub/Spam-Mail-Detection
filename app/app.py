@@ -8,7 +8,7 @@ MODEL_PATH = os.path.join(BASE_DIR, "models", "spam_classifier.pkl")
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from src.gmail_client import clear_credentials, create_oauth_flow, fetch_latest_messages, save_credentials, load_credentials
+from src.gmail_client import clear_credentials, create_oauth_flow, fetch_latest_messages, get_user_identity, save_credentials, load_credentials
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "local-development-key")
@@ -46,7 +46,7 @@ def index():
         result=result,
         confidence=confidence,
         message=message,
-        gmail_connected=load_credentials() is not None,
+        gmail_connected=load_credentials(session.get("gmail_user_id")) is not None,
     )
 
 
@@ -97,7 +97,10 @@ def gmail_callback():
             "gmail_setup.html",
             error=f"Google authorization failed ({type(error).__name__}). Check the test-user and redirect-URI settings, then try again.",
         ), 400
-    save_credentials(flow.credentials)
+    gmail_user_id, gmail_email = get_user_identity(flow.credentials)
+    save_credentials(flow.credentials, gmail_user_id)
+    session["gmail_user_id"] = gmail_user_id
+    session["gmail_email"] = gmail_email
     session.pop("oauth_state", None)
     session.pop("oauth_code_verifier", None)
     return redirect(url_for("inbox"))
@@ -105,13 +108,13 @@ def gmail_callback():
 
 @app.route("/inbox")
 def inbox():
-    if load_credentials() is None:
+    if load_credentials(session.get("gmail_user_id")) is None:
         return redirect(url_for("connect_gmail"))
     model = load_model()
     if model is None:
         return render_template("inbox.html", error="Train the model before scanning your inbox.", messages=[])
     try:
-        messages = fetch_latest_messages(limit=10)
+        messages = fetch_latest_messages(session["gmail_user_id"], limit=10)
         for message in messages:
             message["result"], message["confidence"] = classify_message(model, message["body"])
         return render_template("inbox.html", messages=messages, error=None)
@@ -121,7 +124,9 @@ def inbox():
 
 @app.route("/disconnect/gmail", methods=["POST"])
 def disconnect_gmail():
-    clear_credentials()
+    clear_credentials(session.get("gmail_user_id"))
+    session.pop("gmail_user_id", None)
+    session.pop("gmail_email", None)
     session.pop("oauth_state", None)
     session.pop("oauth_code_verifier", None)
     return redirect(url_for("index"))

@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import os
 import re
 from html import unescape
@@ -11,7 +12,17 @@ from googleapiclient.discovery import build
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CLIENT_SECRETS_PATH = os.path.join(BASE_DIR, "credentials.json")
 TOKEN_PATH = os.path.join(BASE_DIR, "models", "gmail_token.json")
-SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+TOKEN_DIR = os.path.join(BASE_DIR, "models", "gmail_tokens")
+SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "openid",
+]
+
+
+def _token_path(user_id):
+    token_name = hashlib.sha256(user_id.encode("utf-8")).hexdigest()
+    return os.path.join(TOKEN_DIR, f"{token_name}.json")
 
 
 def create_oauth_flow(redirect_uri, state=None):
@@ -28,25 +39,39 @@ def create_oauth_flow(redirect_uri, state=None):
     return flow
 
 
-def save_credentials(credentials):
-    os.makedirs(os.path.dirname(TOKEN_PATH), exist_ok=True)
-    with open(TOKEN_PATH, "w", encoding="utf-8") as token_file:
+def save_credentials(credentials, user_id):
+    token_path = _token_path(user_id)
+    os.makedirs(os.path.dirname(token_path), exist_ok=True)
+    with open(token_path, "w", encoding="utf-8") as token_file:
         token_file.write(credentials.to_json())
 
 
-def clear_credentials():
+def clear_credentials(user_id):
+    if user_id:
+        token_path = _token_path(user_id)
+        if os.path.exists(token_path):
+            os.remove(token_path)
     if os.path.exists(TOKEN_PATH):
         os.remove(TOKEN_PATH)
 
 
-def load_credentials():
-    if not os.path.exists(TOKEN_PATH):
+def load_credentials(user_id):
+    if not user_id:
         return None
-    credentials = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+    token_path = _token_path(user_id)
+    if not os.path.exists(token_path):
+        return None
+    credentials = Credentials.from_authorized_user_file(token_path, SCOPES)
     if credentials.expired and credentials.refresh_token:
         credentials.refresh(Request())
-        save_credentials(credentials)
+        save_credentials(credentials, user_id)
     return credentials if credentials.valid else None
+
+
+def get_user_identity(credentials):
+    service = build("oauth2", "v2", credentials=credentials, cache_discovery=False)
+    user_info = service.userinfo().get().execute()
+    return user_info["id"], user_info.get("email", "")
 
 
 def _decode_body(data):
@@ -77,8 +102,8 @@ def _clean_text(text):
     return re.sub(r"\s+", " ", unescape(text)).strip()
 
 
-def fetch_latest_messages(limit=10):
-    credentials = load_credentials()
+def fetch_latest_messages(user_id, limit=10):
+    credentials = load_credentials(user_id)
     if credentials is None:
         raise RuntimeError("Gmail is not connected")
 

@@ -81,6 +81,17 @@ Optional Gmail workflow:
 
 The Gmail integration only requests `gmail.readonly` access. It does not send, delete, or modify email, and it does not establish that a message is genuinely authentic.
 
+## Public Deployment Requirements
+
+The local version supports switching between accounts by storing each account's token separately. Before making the site public:
+
+- Deploy Flask behind HTTPS with a production WSGI server.
+- Set a strong random `FLASK_SECRET_KEY` environment variable.
+- Replace local token files with an encrypted server-side database keyed by the Google user ID.
+- Configure the deployed HTTPS OAuth callback URI in Google Cloud.
+- Move the OAuth consent screen to Production and complete Google verification for Gmail access.
+- Never commit `credentials.json`, access tokens, or client secrets.
+
 ## 6. Running the Project
 
 From the project root, create and activate a virtual environment:

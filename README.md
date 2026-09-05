@@ -99,3 +99,9 @@ The web app can optionally connect to Gmail and classify the latest inbox messag
 6. Review the results at `Open Gmail inbox`.
 
 The OAuth file and saved token are excluded by `.gitignore`. The classifier identifies messages as likely spam or ham; it does not prove sender identity or that a message is authentic.
+
+### Multiple Users and Public Deployment
+
+Each authorized Google account is stored under a separate hashed token filename, so switching accounts locally does not reuse the previous user's Gmail token. For a real public deployment, do not use local files as the permanent token store. Use a server-side database with encryption at rest, secure cookies, a randomly generated `FLASK_SECRET_KEY`, HTTPS, and a production WSGI server.
+
+In Google Cloud, move the OAuth consent screen from Testing to Production and complete Google's verification requirements for Gmail scopes before allowing general public users. The local `127.0.0.1` redirect URI is for development only; a deployed site needs its own HTTPS callback URI.
