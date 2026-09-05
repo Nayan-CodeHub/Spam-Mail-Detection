@@ -2,6 +2,7 @@ import os
 import sys
 import joblib
 from flask import Flask, redirect, render_template, request, session, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(BASE_DIR, "models", "spam_classifier.pkl")
@@ -12,6 +13,7 @@ from src.gmail_client import clear_credentials, create_oauth_flow, fetch_latest_
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "local-development-key")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 def load_model():
     if not os.path.exists(MODEL_PATH):
