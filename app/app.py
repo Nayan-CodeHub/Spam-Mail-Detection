@@ -71,7 +71,13 @@ def gmail_callback():
     if not state:
         return "OAuth session expired. Return to the home page and try again.", 400
     flow = create_oauth_flow(url_for("gmail_callback", _external=True), state=state)
-    flow.fetch_token(authorization_response=request.url)
+    try:
+        flow.fetch_token(authorization_response=request.url)
+    except Exception:
+        return render_template(
+            "gmail_setup.html",
+            error="Google authorization could not be completed. Check the test-user and redirect-URI settings, then try again.",
+        ), 400
     save_credentials(flow.credentials)
     session.pop("oauth_state", None)
     return redirect(url_for("inbox"))

@@ -16,6 +16,7 @@
 <body>
 <main>
     <h1>Connect Gmail</h1>
+    {% if error %}<p style="color:#a33e2c;font-weight:700;">{{ error }}</p>{% endif %}
     <p>To connect your inbox, add a Google OAuth web-application file named <code>credentials.json</code> to the project root.</p>
     <ol>
         <li>Open Google Cloud Console and create or select a project.</li>

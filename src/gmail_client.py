@@ -17,6 +17,8 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 def create_oauth_flow(redirect_uri, state=None):
     if not os.path.exists(CLIENT_SECRETS_PATH):
         raise FileNotFoundError("credentials.json is missing")
+    if redirect_uri.startswith("http://127.0.0.1:"):
+        os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_PATH,
         scopes=SCOPES,
