@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: spam-mail-detector
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app.app:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_CREDENTIALS_PATH
+        value: /etc/secrets/credentials.json

@@ -92,6 +92,12 @@ The local version supports switching between accounts by storing each account's 
 - Move the OAuth consent screen to Production and complete Google verification for Gmail access.
 - Never commit `credentials.json`, access tokens, or client secrets.
 
+## Deployment Files
+
+- `Procfile`: production Gunicorn start command
+- `render.yaml`: Render service configuration
+- `gunicorn`: production WSGI server dependency
+
 ## 6. Running the Project
 
 From the project root, create and activate a virtual environment:

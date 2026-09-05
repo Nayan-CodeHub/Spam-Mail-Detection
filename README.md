@@ -100,6 +100,21 @@ The web app can optionally connect to Gmail and classify the latest inbox messag
 
 The OAuth file and saved token are excluded by `.gitignore`. The classifier identifies messages as likely spam or ham; it does not prove sender identity or that a message is authentic.
 
+## Public Deployment with Render
+
+The repository includes `Procfile` and `render.yaml` for deployment on Render.
+
+1. Push the repository to GitHub.
+2. Create a Render account and choose **New + → Web Service**.
+3. Connect `Nayan-CodeHub/Spam-Mail-Detection`.
+4. Use the build command `pip install -r requirements.txt` and start command `gunicorn app.app:app`.
+5. In Render, add a secret file at `/etc/secrets/credentials.json` containing the Google OAuth Web client JSON. Do not commit this file to GitHub.
+6. Set `FLASK_SECRET_KEY` to a long random value. Set `GOOGLE_CREDENTIALS_PATH=/etc/secrets/credentials.json`.
+7. After Render gives you an HTTPS URL, add `https://YOUR-RENDER-DOMAIN.onrender.com/oauth2callback` to the Google OAuth client redirect URIs.
+8. Update the OAuth consent screen and complete Google verification before allowing general public users.
+
+For a real public service, move the per-user Gmail tokens from local files into an encrypted persistent database. Render's normal filesystem is ephemeral, so local token files can be lost when the service restarts. The current file-based storage is suitable for local development or a limited demonstration deployment only.
+
 ### Multiple Users and Public Deployment
 
 Each authorized Google account is stored under a separate hashed token filename, so switching accounts locally does not reuse the previous user's Gmail token. For a real public deployment, do not use local files as the permanent token store. Use a server-side database with encryption at rest, secure cookies, a randomly generated `FLASK_SECRET_KEY`, HTTPS, and a production WSGI server.

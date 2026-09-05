@@ -20,18 +20,24 @@ SCOPES = [
 ]
 
 
+def _client_secrets_path():
+    configured_path = os.environ.get("GOOGLE_CREDENTIALS_PATH")
+    return configured_path or CLIENT_SECRETS_PATH
+
+
 def _token_path(user_id):
     token_name = hashlib.sha256(user_id.encode("utf-8")).hexdigest()
     return os.path.join(TOKEN_DIR, f"{token_name}.json")
 
 
 def create_oauth_flow(redirect_uri, state=None):
-    if not os.path.exists(CLIENT_SECRETS_PATH):
-        raise FileNotFoundError("credentials.json is missing")
+    client_secrets_path = _client_secrets_path()
+    if not os.path.exists(client_secrets_path):
+        raise FileNotFoundError("Google OAuth credentials are missing")
     if redirect_uri.startswith("http://127.0.0.1:"):
         os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
     flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_PATH,
+        client_secrets_path,
         scopes=SCOPES,
         state=state,
     )
