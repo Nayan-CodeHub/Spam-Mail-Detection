@@ -70,6 +70,9 @@ def gmail_callback():
     state = session.get("oauth_state")
     if not state:
         return "OAuth session expired. Return to the home page and try again.", 400
+    if request.args.get("state") != state:
+        session.pop("oauth_state", None)
+        return "OAuth state validation failed. Start a new Gmail connection.", 400
     if request.args.get("error"):
         error_code = request.args.get("error")
         error_description = request.args.get("error_description", "No description provided")
@@ -80,7 +83,7 @@ def gmail_callback():
         ), 400
     flow = create_oauth_flow(url_for("gmail_callback", _external=True), state=state)
     try:
-        flow.fetch_token(authorization_response=request.url)
+        flow.fetch_token(code=request.args["code"])
     except Exception as error:
         app.logger.exception("Gmail OAuth callback failed")
         session.pop("oauth_state", None)
