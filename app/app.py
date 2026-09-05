@@ -57,7 +57,9 @@ def connect_gmail():
     try:
         flow = create_oauth_flow(url_for("gmail_callback", _external=True))
     except FileNotFoundError:
-        return render_template("gmail_setup.html")
+        return render_template("gmail_setup.html", error="Google OAuth credentials are missing on the server.")
+    except ValueError:
+        return render_template("gmail_setup.html", error="The server's credentials.json is not valid JSON. Replace the Render secret file with the downloaded Google OAuth JSON.")
     authorization_url, state = flow.authorization_url(
         access_type="offline",
         include_granted_scopes="true",
