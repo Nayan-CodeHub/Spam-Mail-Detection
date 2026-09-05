@@ -8,7 +8,7 @@ MODEL_PATH = os.path.join(BASE_DIR, "models", "spam_classifier.pkl")
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from src.gmail_client import create_oauth_flow, fetch_latest_messages, save_credentials, load_credentials
+from src.gmail_client import clear_credentials, create_oauth_flow, fetch_latest_messages, save_credentials, load_credentials
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "local-development-key")
@@ -117,6 +117,14 @@ def inbox():
         return render_template("inbox.html", messages=messages, error=None)
     except Exception as error:
         return render_template("inbox.html", messages=[], error=f"Could not read Gmail: {error}")
+
+
+@app.route("/disconnect/gmail", methods=["POST"])
+def disconnect_gmail():
+    clear_credentials()
+    session.pop("oauth_state", None)
+    session.pop("oauth_code_verifier", None)
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -34,6 +34,11 @@ def save_credentials(credentials):
         token_file.write(credentials.to_json())
 
 
+def clear_credentials():
+    if os.path.exists(TOKEN_PATH):
+        os.remove(TOKEN_PATH)
+
+
 def load_credentials():
     if not os.path.exists(TOKEN_PATH):
         return None
