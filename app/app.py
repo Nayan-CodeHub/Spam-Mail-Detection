@@ -62,37 +62,44 @@ def connect_gmail():
         prompt="consent",
     )
     session["oauth_state"] = state
+    session["oauth_code_verifier"] = flow.code_verifier
     return redirect(authorization_url)
 
 
 @app.route("/oauth2callback")
 def gmail_callback():
     state = session.get("oauth_state")
-    if not state:
+    code_verifier = session.get("oauth_code_verifier")
+    if not state or not code_verifier:
         return "OAuth session expired. Return to the home page and try again.", 400
     if request.args.get("state") != state:
         session.pop("oauth_state", None)
+        session.pop("oauth_code_verifier", None)
         return "OAuth state validation failed. Start a new Gmail connection.", 400
     if request.args.get("error"):
         error_code = request.args.get("error")
         error_description = request.args.get("error_description", "No description provided")
         session.pop("oauth_state", None)
+        session.pop("oauth_code_verifier", None)
         return render_template(
             "gmail_setup.html",
             error=f"Google returned {error_code}: {error_description}",
         ), 400
     flow = create_oauth_flow(url_for("gmail_callback", _external=True), state=state)
+    flow.code_verifier = code_verifier
     try:
         flow.fetch_token(code=request.args["code"])
     except Exception as error:
         app.logger.exception("Gmail OAuth callback failed")
         session.pop("oauth_state", None)
+        session.pop("oauth_code_verifier", None)
         return render_template(
             "gmail_setup.html",
             error=f"Google authorization failed ({type(error).__name__}). Check the test-user and redirect-URI settings, then try again.",
         ), 400
     save_credentials(flow.credentials)
     session.pop("oauth_state", None)
+    session.pop("oauth_code_verifier", None)
     return redirect(url_for("inbox"))
 
 
