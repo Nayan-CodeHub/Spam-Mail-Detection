@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 import joblib
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -16,6 +17,12 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "local-development-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 def load_model():
+    if not os.path.exists(MODEL_PATH):
+        subprocess.run(
+            [sys.executable, "-m", "src.train_model"],
+            cwd=BASE_DIR,
+            check=True,
+        )
     if not os.path.exists(MODEL_PATH):
         return None
     return joblib.load(MODEL_PATH)
