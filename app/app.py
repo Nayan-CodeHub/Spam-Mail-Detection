@@ -54,6 +54,8 @@ def index():
 
 @app.route("/connect/gmail")
 def connect_gmail():
+    if request.host == "localhost:5000":
+        return redirect("http://127.0.0.1:5000/connect/gmail")
     try:
         flow = create_oauth_flow(url_for("gmail_callback", _external=True))
     except FileNotFoundError:
