@@ -48,10 +48,10 @@ Spam-Mail-Detector/
 5. Install packages:
    `pip install -r requirements.txt`
 6. Train the model:
-   `python src/train_model.py`
+   `python -m src.train_model`
 7. Start the web app:
    `python app/app.py`
-8. Open the local address shown in the terminal.
+8. Open `http://127.0.0.1:5000` in your browser. Use `127.0.0.1` rather than `localhost` so the local OAuth callback matches the registered redirect URI.
 
 ## Dataset
 The project uses the public [SMS Spam Collection dataset](https://archive.ics.uci.edu/dataset/228/sms+spam+collection), with 5,574 messages and columns named `label` and `message`.
@@ -94,9 +94,10 @@ The web app can optionally connect to Gmail and classify the latest inbox messag
 1. Enable the Gmail API in Google Cloud Console.
 2. Create OAuth credentials for a Web application and add `http://127.0.0.1:5000/oauth2callback` as an authorized redirect URI.
 3. Download the JSON file, rename it to `credentials.json`, and place it in the project root beside `requirements.txt`.
-4. Install the updated requirements and start the app.
-5. Click `Connect Gmail` and complete Google's consent flow.
-6. Review the results at `Open Gmail inbox`.
+4. If the OAuth consent screen is in Testing mode, add each account that will connect under **Test users**.
+5. Install the requirements and start the app.
+6. Open `http://127.0.0.1:5000`, click `Connect Gmail`, and complete Google's consent flow.
+7. Review the results at `Open Gmail inbox`.
 
 The OAuth file and saved token are excluded by `.gitignore`. The classifier identifies messages as likely spam or ham; it does not prove sender identity or that a message is authentic.
 
@@ -107,11 +108,12 @@ The repository includes `Procfile` and `render.yaml` for deployment on Render.
 1. Push the repository to GitHub.
 2. Create a Render account and choose **New + → Web Service**.
 3. Connect `Nayan-CodeHub/Spam-Mail-Detection`.
-4. Use the build command `pip install -r requirements.txt` and start command `gunicorn app.app:app`.
+4. Use the build command `pip install -r requirements.txt && python -m src.train_model` and start command `gunicorn app.app:app`. The build command trains the classifier because model files are excluded from Git.
 5. In Render, add a secret file at `/etc/secrets/credentials.json` containing the Google OAuth Web client JSON. Do not commit this file to GitHub.
 6. Set `FLASK_SECRET_KEY` to a long random value. Set `GOOGLE_CREDENTIALS_PATH=/etc/secrets/credentials.json`.
-7. After Render gives you an HTTPS URL, add `https://YOUR-RENDER-DOMAIN.onrender.com/oauth2callback` to the Google OAuth client redirect URIs.
-8. Update the OAuth consent screen and complete Google verification before allowing general public users.
+7. Enable the Gmail API in the same Google Cloud project as the OAuth client.
+8. After Render gives you an HTTPS URL, add `https://YOUR-RENDER-DOMAIN.onrender.com/oauth2callback` to the Google OAuth client redirect URIs.
+9. Update the OAuth consent screen and complete Google verification before allowing general public users.
 
 For a real public service, move the per-user Gmail tokens from local files into an encrypted persistent database. Render's normal filesystem is ephemeral, so local token files can be lost when the service restarts. The current file-based storage is suitable for local development or a limited demonstration deployment only.
 
